@@ -10,6 +10,7 @@ graph my progress as I processed my large inbox queue.
 - `make venv`
 - `. venv/bin/activate`
 - `python setup_auth.py`
+- `python create_tables.py`
 
 ### Run the application
 - `make venv`

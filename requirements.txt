@@ -1,5 +1,6 @@
 dumb-init
 flake8
 flask
+git-code-debt
 google-api-python-client
 pgctl
