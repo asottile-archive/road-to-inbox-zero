@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+import json
+import os
+
+
+def main():
+    os.chdir('../..')
+    with open('config.json') as config:
+        cfg = json.load(config)
+    os.execvp(
+        'git-code-debt-server',
+        ('git-code-debt-server', 'database.db', '--port', str(cfg['port'])),
+    )
+
+
+if __name__ == '__main__':
+    exit(main())

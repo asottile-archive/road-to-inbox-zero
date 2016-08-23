@@ -1,3 +1,5 @@
+import calendar
+import datetime
 import sqlite3
 import time
 
@@ -6,26 +8,8 @@ from apiclient.discovery import build
 from oauth2client.client import Credentials
 
 
-def _table_exists(db, name):
-    return bool(db.execute(
-        'SELECT name FROM sqlite_master WHERE type = "table" and name = ?',
-        (name,)
-    ).fetchall())
-
-
 def connect_db():
     return sqlite3.connect('database.db')
-
-
-def create_tables_if_not_existing():
-    with connect_db() as db:
-        if not _table_exists(db, 'data'):
-            db.execute(
-                'CREATE TABLE data (\n'
-                '    timestamp_ms INT NOT NULL,\n'
-                '    unread_count INT NOT NULL\n'
-                ')'
-            )
 
 
 def get_service():
@@ -37,18 +21,31 @@ def get_service():
     return build('gmail', 'v1', http=http_auth)
 
 
-def insert_data(*args):
+def get_next_sha(db):
+    (maxsha,), = db.execute('SELECT MAX(sha) FROM metric_data').fetchall()
+    maxsha = int(maxsha if maxsha is not None else '-1')
+    return '{:040d}'.format(maxsha + 1)
+
+
+def insert_data(timestamp, unread_count):
     with connect_db() as db:
-        db.execute('INSERT INTO data VALUES (?, ?)', args)
+        next_sha = get_next_sha(db)
+        db.execute(
+            'INSERT INTO metric_data VALUES (?, ?, ?, ?)',
+            (next_sha, 0, timestamp, unread_count),
+        )
+
+
+def get_timestamp():
+    return calendar.timegm(datetime.datetime.now().utctimetuple())
 
 
 def main():
-    create_tables_if_not_existing()
     service = get_service()
 
     while True:
         ret = service.users().labels().get(userId='me', id='INBOX').execute()
-        insert_data(int(time.time() * 1000), ret['threadsUnread'])
+        insert_data(get_timestamp(), ret['threadsUnread'])
         print('{} unread thread(s)'.format(ret['threadsUnread']))
         time.sleep(15)
 
