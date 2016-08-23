@@ -2,4 +2,5 @@
 /client_creds.json
 /client_secrets.json
 /config.json
+/database.db
 /venv

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec cd ../../ dumb-init python -u scraper.py
